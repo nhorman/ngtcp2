@@ -102,7 +102,7 @@ qtlsserver_SOURCES = server.cc server.h ${SERVER_SRCS} \
 endif # ENABLE_EXAMPLE_QUICTLS
 
 if ENABLE_EXAMPLE_OPENSSL
-noinst_PROGRAMS += opensslclient opensslserver
+noinst_PROGRAMS += opensslclient opensslserver h09opensslclient h09opensslserver
 
 opensslclient_CPPFLAGS = ${AM_CPPFLAGS} \
 	@JEMALLOC_CFLAGS@ @OPENSSL_CFLAGS@ -DWITH_EXAMPLE_OPENSSL
@@ -123,7 +123,25 @@ opensslserver_SOURCES = server.cc server.h ${SERVER_SRCS} \
 	tls_server_session_openssl.cc tls_server_session_openssl.h \
 	tls_session_base_openssl.cc tls_session_base_openssl.h \
 	util_openssl.cc
-endif # ENABLE_EXAMPLE_QUICTLS
+
+h09opensslclient_CPPFLAGS = ${opensslclient_CPPFLAGS}
+h09opensslclient_LDADD = ${opensslclient_LDADD}
+h09opensslclient_SOURCES = h09client.cc h09client.h ${CLIENT_SRCS} \
+    tls_client_context_openssl.cc tls_client_context_openssl.h \
+    tls_client_session_openssl.cc tls_client_session_openssl.h \
+    tls_session_base_openssl.cc tls_session_base_openssl.h \
+    util_openssl.cc
+
+h09opensslserver_CPPFLAGS = ${opensslclient_CPPFLAGS} \
+    -I$(top_srcdir)/third-party
+h09opensslserver_LDADD = ${opensslclient_LDADD} \
+    $(top_builddir)/third-party/libhttp-parser.la
+h09opensslserver_SOURCES = h09server.cc h09server.h ${SERVER_SRCS} \
+    tls_server_context_openssl.cc tls_server_context_openssl.h \
+    tls_server_session_openssl.cc tls_server_session_openssl.h \
+    tls_session_base_openssl.cc tls_session_base_openssl.h \
+    util_openssl.cc
+endif # ENABLE_EXAMPLE_OPENSSL
 
 if ENABLE_EXAMPLE_GNUTLS
 noinst_PROGRAMS += gtlsclient gtlsserver gtlssimpleclient

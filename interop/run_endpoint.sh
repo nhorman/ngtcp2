@@ -25,9 +25,9 @@ if [ "$ROLE" == "client" ]; then
     REQS=($REQUESTS)
     SERVER=$(echo ${REQS[0]} | sed -re 's|^https://([^/:]+)(:[0-9]+)?/.*$|\1|')
     if [ "$TESTCASE" == "http3" ]; then
-        CLIENT_BIN="/usr/local/bin/wsslclient"
+        CLIENT_BIN="/usr/local/bin/opensslclient"
     else
-        CLIENT_BIN="/usr/local/bin/h09wsslclient"
+        CLIENT_BIN="/usr/local/bin/h09opensslclient"
     fi
     CLIENT_ARGS="$SERVER 443 --download /downloads -s --no-quic-dump --no-http-dump --exit-on-all-streams-close --qlog-dir $QLOGDIR --cc bbr --initial-rtt 100ms"
     if [ "$TESTCASE" == "versionnegotiation" ]; then
@@ -55,23 +55,23 @@ if [ "$ROLE" == "client" ]; then
             CLIENT_ARGS="$CLIENT_ARGS --disable-early-data"
         fi
         REQUESTS=${REQS[0]}
-        $CLIENT_BIN $CLIENT_ARGS $REQUESTS $CLIENT_PARAMS &> $LOG
+        LD_LIBRARY_PATH=/usr/lib64 $CLIENT_BIN $CLIENT_ARGS $REQUESTS $CLIENT_PARAMS &> $LOG
         REQUESTS=${REQS[@]:1}
-        $CLIENT_BIN $CLIENT_ARGS $REQUESTS $CLIENT_PARAMS &>> $LOG
+        LD_LIBRARY_PATH=/usr/lib64 $CLIENT_BIN $CLIENT_ARGS $REQUESTS $CLIENT_PARAMS &>> $LOG
     elif [ "$TESTCASE" == "multiconnect" ]; then
         CLIENT_ARGS="$CLIENT_ARGS --timeout=180s --handshake-timeout=180s"
         for REQ in $REQUESTS; do
             echo "multiconnect REQ: $REQ" >> $LOG
-            $CLIENT_BIN $CLIENT_ARGS $REQ $CLIENT_PARAMS &>> $LOG
+            LD_LIBRARY_PATH=/usr/lib64 $CLIENT_BIN $CLIENT_ARGS $REQ $CLIENT_PARAMS &>> $LOG
         done
     else
-        $CLIENT_BIN $CLIENT_ARGS $REQUESTS $CLIENT_PARAMS &> $LOG
+        LD_LIBRARY_PATH=/usr/lib64 $CLIENT_BIN $CLIENT_ARGS $REQUESTS $CLIENT_PARAMS &> $LOG
     fi
 elif [ "$ROLE" == "server" ]; then
     if [ "$TESTCASE" == "http3" ]; then
-        SERVER_BIN="/usr/local/bin/wsslserver"
+        SERVER_BIN="/usr/local/bin/opensslserver"
     else
-        SERVER_BIN="/usr/local/bin/h09wsslserver"
+        SERVER_BIN="/usr/local/bin/h09opensslserver"
     fi
     SERVER_ARGS="/certs/priv.key /certs/cert.pem -s -d /www --qlog-dir $QLOGDIR --cc bbr --initial-rtt 100ms"
     case "$TESTCASE" in
@@ -92,5 +92,5 @@ elif [ "$ROLE" == "server" ]; then
             ;;
     esac
 
-    $SERVER_BIN '*' 443 $SERVER_ARGS $SERVER_PARAMS &> $LOG
+    LD_LIBRARY_PATH=/usr/lib64 $SERVER_BIN '*' 443 $SERVER_ARGS $SERVER_PARAMS &> $LOG
 fi
